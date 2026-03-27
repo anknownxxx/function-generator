@@ -140,7 +140,90 @@
     .filter-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
     .filter-btn.active { background:rgba(78,205,196,0.18); border-color:rgba(78,205,196,0.45); color:#7efff7; }
     @keyframes fadeInUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
-    @media(max-width:720px){ .function-display{grid-template-columns:1fr;gap:1.5rem;} .main-card{padding:1.5rem;} }
+    /* ===== RESPONSIVE DESIGN ===== */
+
+    /* Base fluid tweaks (all sizes) */
+    .container { padding: 1.5rem; }
+
+    /* ── Tablet landscape / small desktop  ≤ 960px ── */
+    @media (max-width: 960px) {
+      .main-card { max-width: 100%; }
+    }
+
+    /* ── Tablet portrait  ≤ 768px ── */
+    @media (max-width: 768px) {
+      .function-display {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      .main-card {
+        padding: 2rem 1.5rem;
+        border-radius: 18px;
+      }
+      canvas { height: 260px; }
+      .stats { grid-template-columns: repeat(4, 1fr); } /* 4 across on tablet */
+      .btn-row { gap: 0.5rem; }
+    }
+
+    /* ── Large mobile  ≤ 600px ── */
+    @media (max-width: 600px) {
+      .container { padding: 1rem; }
+      .header { margin-bottom: 1.5rem; }
+      .header p { font-size: 0.9rem; }
+      .main-card {
+        padding: 1.5rem 1.1rem;
+        border-radius: 16px;
+      }
+      canvas { height: 220px; }
+      .stats { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+      .stat-value { font-size: 0.95rem; }
+      .formula { padding: 1rem 0.75rem; min-height: 70px; }
+      .shape-name { font-size: 1rem; }
+      .formula-title { font-size: 1rem; }
+      .btn-row { flex-direction: column; align-items: stretch; }
+      .filter-btn, .generate-btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+      .btn-row:first-of-type { flex-direction: row; flex-wrap: wrap; }
+    }
+
+    /* ── Small mobile  ≤ 420px ── */
+    @media (max-width: 420px) {
+      .main-card { padding: 1.1rem 0.85rem; }
+      canvas { height: 190px; border-radius: 10px; }
+      .stats { gap: 0.4rem; }
+      .stat-item { padding: 0.5rem 0.35rem; }
+      .stat-value { font-size: 0.85rem; }
+      .stat-label { font-size: 0.62rem; }
+      .generate-btn { padding: 0.8rem 1.5rem; font-size: 0.9rem; }
+      .filter-btn { font-size: 0.7rem; padding: 0.45rem 0.8rem; }
+      .type-badge { font-size: 0.62rem; }
+    }
+
+    /* ── Tiny phones  ≤ 360px ── */
+    @media (max-width: 360px) {
+      canvas { height: 170px; }
+      .header h1 { font-size: 1.6rem; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── Landscape phone (short viewport) ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .container {
+        justify-content: flex-start;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+      }
+      .header { margin-bottom: 1rem; }
+      .header h1 { font-size: 1.8rem; }
+      .header p { display: none; }
+      .function-display { grid-template-columns: 1fr 1.2fr; gap: 1.5rem; }
+      canvas { height: 180px; }
+      .main-card { padding: 1.2rem; }
+      .stats { grid-template-columns: repeat(4, 1fr); }
+    }
 
   </style>
 </head>
@@ -447,11 +530,11 @@ function setStats(a,b,la,lb){
   document.getElementById('statB').textContent=b; document.getElementById('labelB').textContent=lb;
 }
 </script>
-  <!-- admax -->
+
+<!-- admax -->
 <script src="https://adm.shinobi.jp/s/f72126b8bdaecb23299f3617b64f6a39"></script>
 <!-- admax -->
-
-    
+  
     </div>
   </div>
 </div>
