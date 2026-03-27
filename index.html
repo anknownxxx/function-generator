@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔮 function generator</title>
+  <title>🔮 ランダム数学関数ジェネレーター</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" async></script>
   <style>
@@ -84,9 +84,31 @@
     .formula {
       background:rgba(0,0,0,0.35); border-radius:14px; padding:1.2rem 1rem;
       border:1px solid rgba(255,107,107,0.2); text-align:center;
-      min-height:80px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.35rem;
+      min-height:80px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem;
+      overflow: visible;
+      width: 100%;
     }
-    .formula .math-line { max-width:100%; overflow:hidden; font-size:0.9rem; }
+    .formula .math-line {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+    }
+    .formula .math-line::-webkit-scrollbar { display: none; }
+    /* MathJaxのSVGを枠に収める */
+    .formula .math-line mjx-container {
+      display: block !important;
+      overflow-x: auto;
+      max-width: 100%;
+      scrollbar-width: none;
+    }
+    .formula .math-line mjx-container::-webkit-scrollbar { display: none; }
+    .formula .math-line mjx-container > svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
     .shape-name {
       font-family:'JetBrains Mono',monospace; font-size:1.2rem; font-weight:700;
       text-align:center; padding:0.5rem; background:rgba(255,255,255,0.04); border-radius:10px; color:#fff;
@@ -119,112 +141,6 @@
     .filter-btn.active { background:rgba(78,205,196,0.18); border-color:rgba(78,205,196,0.45); color:#7efff7; }
     @keyframes fadeInUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
     @media(max-width:720px){ .function-display{grid-template-columns:1fr;gap:1.5rem;} .main-card{padding:1.5rem;} }
-
-    /* ===== NINJA ADMAX 320×50 STICKY AD ===== */
-
-    /*
-      Layout stack from bottom of viewport (lowest z first):
-        [ninja-ad-wrap]   z-index:300  height: 50px  (the actual ad slot)
-
-      body padding-bottom = 58px (50px ad + 8px gap)
-      On mobile ≤480px: bar collapses to 56px → padding = 50+56+8 = 114px
-    */
-
-    body { padding-bottom: 58px; }
-
-    /* ── Ad wrapper ── */
-    .ninja-ad-wrap {
-      position: fixed;
-      bottom: 0;             /* sits at bottom of viewport */
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 300;
-      width: 320px;
-      height: 50px;
-      background: transparent;
-      /* subtle separator so the two bars feel distinct */
-      filter: drop-shadow(0 -2px 8px rgba(0,0,0,0.5));
-    }
-
-    /* The slot itself: plain white background so ad creative shows correctly */
-    .ninja-ad-slot {
-      width: 320px;
-      height: 50px;
-      background: #fff;           /* required by most ad networks */
-      border-radius: 4px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-
-    /* "広告" label – tiny, stays above ad creative */
-    .ninja-ad-label {
-      position: absolute;
-      top: 2px;
-      right: 4px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.52rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: #aaa;
-      background: rgba(255,255,255,0.85);
-      padding: 1px 4px;
-      border-radius: 2px;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    /* Placeholder shown ONLY when no real ad is loaded (dev / preview) */
-    .ninja-ad-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      color: #999;
-      background: repeating-linear-gradient(
-        -45deg,
-        #f4f4f4,
-        #f4f4f4 4px,
-        #ececec 4px,
-        #ececec 8px
-      );
-      pointer-events: none;
-      user-select: none;
-    }
-    .ninja-ad-placeholder span { color: #bbb; }
-
-    /* ── Responsive ── */
-
-    /* ≥ 728px: upgrade slot width to leaderboard-ish within wrapper */
-    @media (min-width: 728px) {
-      .ninja-ad-wrap  { width: 320px; }   /* keep 320 – AdMax mobile banner */
-    }
-
-    /* ≤ 480px */
-    @media (max-width: 480px) {
-      .ninja-ad-wrap { bottom: 0; }
-      body           { padding-bottom: 58px; }
-    }
-
-    /* ≤ 360px: slot may clip – center & scale down slightly */
-    @media (max-width: 360px) {
-      .ninja-ad-wrap {
-        width: 300px;
-      }
-      .ninja-ad-slot {
-        width: 300px;
-      }
-      .ninja-ad-placeholder {
-        font-size: 0.58rem;
-      }
-    }
-
 
   </style>
 </head>
@@ -387,7 +303,12 @@ function generateNewFunction(){
 
   const formulaEl=document.getElementById('formula');
   formulaEl.innerHTML=currentDef.latexLines.map(l=>`<div class="math-line">\\(${l}\\)</div>`).join('');
-  if(window.MathJax)MathJax.typesetPromise([formulaEl]).catch(()=>{});
+  if(window.MathJax){
+    MathJax.typesetPromise([formulaEl]).then(()=>{
+      // 数式が枠からはみ出す場合はフォントサイズを段階的に縮小
+      scaleFormulaToFit(formulaEl);
+    }).catch(()=>{});
+  }
 
   document.getElementById('shapeName').textContent=currentDef.name;
   document.getElementById('statC').textContent=kind==='cartesian'?'直交座標':kind==='parametric'?'パラメトリック':'極座標';
@@ -525,21 +446,12 @@ function setStats(a,b,la,lb){
   document.getElementById('statA').textContent=a; document.getElementById('labelA').textContent=la;
   document.getElementById('statB').textContent=b; document.getElementById('labelB').textContent=lb;
 }
-</script><!-- ===== 320×50 追尾型広告スペース ===== -->
-<!--
-
-<div class="ninja-ad-wrap" id="ninjaAdWrap">
-  <div class="ninja-ad-slot">
-    <span class="ninja-ad-label">広告</span>
-
-    <!-- ↓ 忍者AdMaxのタグをここに貼り付けてください ↓ -->
-<!-- admax -->
+</script>
+  <!-- admax -->
 <script src="https://adm.shinobi.jp/s/f72126b8bdaecb23299f3617b64f6a39"></script>
 <!-- admax -->
 
-    <!-- ↑ 本番では以下の placeholder を削除してください ↑ -->
-    <div class="ninja-ad-placeholder">
-      <span>320 × 50</span> 
+    
     </div>
   </div>
 </div>
