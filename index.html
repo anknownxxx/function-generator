@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔮 ランダム数学関数ジェネレーター</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" async></script>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      --card-bg: rgba(20, 20, 30, 0.9);
+      --accent: #ff6b6b;
+      --accent2: #4ecdc4;
+      --accent3: #45b7d1;
+      --text: #f0f0f0;
+      --text-muted: #a0a0a0;
+      --glow: rgba(255, 107, 107, 0.4);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(120,119,198,0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,119,198,0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120,219,255,0.2) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+      animation: bgShift 20s ease-in-out infinite;
+    }
+    @keyframes bgShift { 0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.1) rotate(180deg);} }
+    .container {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 2rem; max-width: 1000px; margin: 0 auto;
+    }
+    .header { text-align: center; margin-bottom: 2.5rem; animation: fadeInUp 1s ease-out; }
+    .header h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.8rem, 5vw, 3.5rem); font-weight: 700;
+      background: linear-gradient(45deg, var(--accent), var(--accent2), var(--accent3));
+      background-size: 300% 300%;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: gradientShift 3s ease infinite, glowPulse 2s ease-in-out infinite alternate;
+      margin-bottom: 0.5rem;
+    }
+    @keyframes gradientShift { 0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;} }
+    @keyframes glowPulse { from{filter:drop-shadow(0 0 10px var(--glow));}to{filter:drop-shadow(0 0 30px var(--glow));} }
+    .header p { font-size: 1rem; color: var(--text-muted); font-weight: 300; }
+    .type-badge {
+      display: inline-block; font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.7rem;
+      border-radius: 50px; margin-bottom: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      transition: all 0.4s ease;
+    }
+    .type-badge.cartesian { background:rgba(255,107,107,0.2); border:1px solid rgba(255,107,107,0.4); color:#ff9999; }
+    .type-badge.parametric { background:rgba(78,205,196,0.2); border:1px solid rgba(78,205,196,0.4); color:#7efff7; }
+    .type-badge.polar { background:rgba(178,120,255,0.2); border:1px solid rgba(178,120,255,0.4); color:#d9b3ff; }
+    .main-card {
+      background: var(--card-bg); backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 2.5rem;
+      width: 100%; max-width: 880px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      animation: cardFloat 6s ease-in-out infinite; position: relative; overflow: hidden;
+    }
+    .main-card::before {
+      content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
+      background:linear-gradient(45deg,transparent,rgba(255,107,107,0.03),transparent);
+      animation:shimmer 4s infinite; pointer-events:none;
+    }
+    @keyframes shimmer { 0%{transform:translateX(-100%) translateY(-100%) rotate(45deg);}100%{transform:translateX(100%) translateY(100%) rotate(45deg);} }
+    @keyframes cardFloat { 0%,100%{transform:translateY(0px);}50%{transform:translateY(-8px);} }
+    .function-display { display:grid; grid-template-columns:1fr 1.2fr; gap:2.5rem; align-items:start; }
+    .formula-section { display:flex; flex-direction:column; gap:0.9rem; }
+    .formula-title { font-family:'JetBrains Mono',monospace; font-size:1.1rem; font-weight:600; color:var(--accent); text-align:center; }
+    .formula {
+      background:rgba(0,0,0,0.35); border-radius:14px; padding:1.2rem 1rem;
+      border:1px solid rgba(255,107,107,0.2); text-align:center;
+      min-height:80px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.35rem;
+    }
+    .formula .math-line { max-width:100%; overflow:hidden; font-size:0.9rem; }
+    .shape-name {
+      font-family:'JetBrains Mono',monospace; font-size:1.2rem; font-weight:700;
+      text-align:center; padding:0.5rem; background:rgba(255,255,255,0.04); border-radius:10px; color:#fff;
+    }
+    .graph-section { position:relative; }
+    canvas {
+      width:100%; height:320px; border-radius:16px;
+      border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.4); display:block;
+    }
+    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:0.6rem; margin-top:1rem; }
+    .stat-item { text-align:center; padding:0.6rem; background:rgba(255,255,255,0.04); border-radius:10px; transition:all 0.3s; }
+    .stat-item:hover { background:rgba(255,107,107,0.1); transform:translateY(-2px); }
+    .stat-value { font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:700; color:var(--accent2); display:block; }
+    .stat-label { font-size:0.7rem; color:var(--text-muted); margin-top:0.1rem; }
+    .btn-row { display:flex; justify-content:center; margin-top:1.5rem; gap:0.7rem; flex-wrap:wrap; }
+    .generate-btn {
+      background:linear-gradient(45deg,var(--accent),var(--accent2)); border:none; color:white;
+      font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:500;
+      padding:0.9rem 2.2rem; border-radius:50px; cursor:pointer; transition:all 0.3s;
+      box-shadow:0 8px 25px rgba(255,107,107,0.35);
+    }
+    .generate-btn:hover { transform:translateY(-3px); box-shadow:0 15px 35px rgba(255,107,107,0.55); }
+    .generate-btn:active { transform:translateY(-1px); }
+    .filter-btn {
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:var(--text-muted);
+      font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:500;
+      padding:0.55rem 1rem; border-radius:50px; cursor:pointer; transition:all 0.3s;
+    }
+    .filter-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
+    .filter-btn.active { background:rgba(78,205,196,0.18); border-color:rgba(78,205,196,0.45); color:#7efff7; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
+    @media(max-width:720px){ .function-display{grid-template-columns:1fr;gap:1.5rem;} .main-card{padding:1.5rem;} }
+
+    /* ===== STICKY FOOTER BAR ===== */
+    body { padding-bottom: 82px; }
+
+    .sticky-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(10,10,22,0.82);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-top: 1px solid rgba(255,255,255,0.09);
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+      padding: 0 1.5rem;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* current shape pill */
+    .bar-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+    .bar-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(78,205,196,0.6));
+    }
+    .bar-text {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .bar-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bar-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 0.05rem;
+    }
+    .bar-type.cartesian  { color: #ff9999; }
+    .bar-type.parametric { color: #7efff7; }
+    .bar-type.polar      { color: #d9b3ff; }
+
+    /* divider */
+    .bar-divider {
+      width: 1px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    /* counter */
+    .bar-counter {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .bar-count-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent2);
+      line-height: 1;
+    }
+    .bar-count-label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* filter mini pills */
+    .bar-filters {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+    .bar-filter {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.3rem 0.65rem;
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .bar-filter:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .bar-filter.active { background: rgba(78,205,196,0.18); border-color: rgba(78,205,196,0.45); color: #7efff7; }
+
+    /* big generate button in bar */
+    .bar-gen-btn {
+      background: linear-gradient(45deg, var(--accent), var(--accent2));
+      border: none;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1.4rem;
+      border-radius: 50px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.25s;
+      box-shadow: 0 4px 18px rgba(255,107,107,0.35);
+      white-space: nowrap;
+    }
+    .bar-gen-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,107,0.55); }
+    .bar-gen-btn:active { transform: translateY(0); }
+
+    /* progress glow line at top of bar */
+    .bar-progress {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      background-size: 200% 100%;
+      animation: progressFlow 3s linear infinite;
+    }
+    @keyframes progressFlow {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    @media(max-width:600px) {
+      .bar-filters { display: none; }
+      .bar-divider { display: none; }
+      .bar-counter { display: none; }
+      .sticky-bar { padding: 0 1rem; }
+    }
+
+    /* ===== STICKY AD BAR ===== */
+    .ad-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 200;
+      background: rgba(12,12,24,0.97);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1rem;
+      height: 80px;
+      animation: adSlideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+      transform-origin: bottom;
+    }
+    .ad-bar.hidden {
+      animation: adSlideDown 0.35s cubic-bezier(0.4,0,1,1) forwards;
+      pointer-events: none;
+    }
+    @keyframes adSlideUp   { from{transform:translateY(100%);opacity:0;} to{transform:translateY(0);opacity:1;} }
+    @keyframes adSlideDown { from{transform:translateY(0);opacity:1;} to{transform:translateY(100%);opacity:0;} }
+
+    .ad-bar-inner {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+    }
+
+    /* AD label */
+    .ad-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #888;
+      border: 1px solid #444;
+      border-radius: 3px;
+      padding: 0.1rem 0.35rem;
+      flex-shrink: 0;
+    }
+
+    /* fake logo box */
+    .ad-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(78,205,196,0.35);
+    }
+
+    .ad-copy {
+      flex: 1;
+      min-width: 0;
+    }
+    .ad-headline {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #f0f0f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ad-sub {
+      font-size: 0.7rem;
+      color: #888;
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ad-cta {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.5rem 1.1rem;
+      border-radius: 50px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      box-shadow: 0 3px 14px rgba(255,107,107,0.35);
+      white-space: nowrap;
+    }
+    .ad-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(78,205,196,0.45); }
+
+    .ad-close {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #888;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .ad-close:hover { background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.4); color: #fff; }
+
+    /* shimmer animation on ad bg */
+    .ad-bar::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%;
+      width: 40%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+      animation: adShimmer 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes adShimmer { 0%{left:-60%;} 100%{left:120%;} }
+
+    /* re-show button after close */
+    .ad-reopen {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 200;
+      background: rgba(12,12,24,0.92);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #888;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: none;
+      backdrop-filter: blur(12px);
+    }
+    .ad-reopen.visible { display: block; animation: fadeInUp 0.3s ease; }
+    .ad-reopen:hover { background: rgba(255,107,107,0.15); color: #fff; }
+
+    /* offset main content when ad visible */
+    body.ad-open { padding-bottom: 96px; }
+
+    @media(max-width:520px) {
+      .ad-sub { display: none; }
+      .ad-bar { height: 68px; }
+    }
+
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔮 関数ランダム生成器</h1>
+    <p>デカルト · パラメトリック · 極座標 — 毎回ユニークな数学美術</p>
+  </div>
+  <div class="main-card">
+    <div class="function-display">
+      <div class="formula-section">
+        <div class="formula-title">数式</div>
+        <div id="typeBadge" class="type-badge cartesian">CARTESIAN</div>
+        <div class="formula" id="formula"><em>生成中...</em></div>
+        <div class="shape-name" id="shapeName">—</div>
+        <div class="stats">
+          <div class="stat-item"><span class="stat-value" id="statA">-</span><span class="stat-label" id="labelA">最大値</span></div>
+          <div class="stat-item"><span class="stat-value" id="statB">-</span><span class="stat-label" id="labelB">最小値</span></div>
+          <div class="stat-item"><span class="stat-value" id="statC">-</span><span class="stat-label">タイプ</span></div>
+          <div class="stat-item"><span class="stat-value" id="statD">-</span><span class="stat-label">複雑度</span></div>
+        </div>
+      </div>
+      <div class="graph-section"><canvas id="graphCanvas"></canvas></div>
+    </div>
+    <div class="btn-row">
+      <button class="filter-btn active" id="btnAll" onclick="setFilter('all')">🎲 すべて</button>
+      <button class="filter-btn" id="btnCartesian" onclick="setFilter('cartesian')">📈 デカルト</button>
+      <button class="filter-btn" id="btnParametric" onclick="setFilter('parametric')">💫 パラメトリック</button>
+      <button class="filter-btn" id="btnPolar" onclick="setFilter('polar')">🌀 極座標</button>
+    </div>
+    <div class="btn-row">
+      <button class="generate-btn" onclick="generateNewFunction()">🎲 新しい関数を生成</button>
+    </div>
+  </div>
+</div>
+<script>
+let seedVal = Date.now();
+let activeFilter = 'all';
+function sr(){seedVal=(seedVal*1664525+1013904223)&0xffffffff;return(seedVal>>>0)/4294967296;}
+function rnd(a,b){return sr()*(b-a)+a;}
+function ri(a,b){return Math.floor(rnd(a,b+0.9999));}
+function f2(n){return n.toFixed(2);}
+function f1(n){return n.toFixed(1);}
+
+const PALETTES=[
+  ['#ff6b6b','#ffd93d','#ff8e53'],
+  ['#4ecdc4','#45b7d1','#7efff7'],
+  ['#c77dff','#e0aaff','#b185ff'],
+  ['#f72585','#b5179e','#7209b7'],
+  ['#00f5d4','#00bbf9','#9b5de5'],
+  ['#f9c74f','#f8961e','#f3722c'],
+];
+
+// ====== CARTESIAN ======
+const CARTESIAN=[
+  ()=>{const a=ri(1,4),b=+f2(rnd(0.3,2)),c=ri(1,3);return{name:'正弦波合成',complexity:'★★☆',latexLines:[`\\sin(${a}x)+${b}\\cos(${c}x)`],fn:x=>Math.sin(a*x)+b*Math.cos(c*x)};},
+  ()=>{const a=+f2(rnd(0.05,0.3)),b=ri(3,8);return{name:'減衰振動',complexity:'★★☆',latexLines:[`e^{-${a}x^2}\\sin(${b}x)`],fn:x=>Math.exp(-a*x*x)*Math.sin(b*x)};},
+  ()=>({name:'フーリエ近似',complexity:'★★★',latexLines:['\\sum_{k=1}^{4}\\frac{\\sin(kx)}{k}'],fn:x=>[1,2,3,4].reduce((s,k)=>s+Math.sin(k*x)/k,0)}),
+  ()=>{const a=+f2(rnd(0.03,0.15)*(sr()>0.5?1:-1)),b=ri(2,5);return{name:'多項式＋振動',complexity:'★★☆',latexLines:[`${a}x^3+\\sin(${b}x)`],fn:x=>a*x*x*x+Math.sin(b*x)};},
+  ()=>{const a=ri(2,6);return{name:'対数振動',complexity:'★★☆',latexLines:[`\\ln(|x|+1)\\cos(${a}x)`],fn:x=>Math.log(Math.abs(x)+1)*Math.cos(a*x)};},
+  ()=>{const a=ri(3,7);return{name:'ガウス波束',complexity:'★★★',latexLines:[`e^{-0.1x^2}\\cos(${a}x)`],fn:x=>Math.exp(-0.1*x*x)*Math.cos(a*x)};},
+  ()=>{const a=ri(3,6);return{name:'シグモイド振動',complexity:'★★☆',latexLines:[`\\frac{\\sin(${a}x)}{1+e^{-x}}`],fn:x=>Math.sin(a*x)/(1+Math.exp(-x))};},
+  ()=>{const a=ri(2,5),b=+f1(rnd(0.3,0.8));return{name:'絶対値波',complexity:'★☆☆',latexLines:[`|\\sin(${a}x)|-${b}`],fn:x=>Math.abs(Math.sin(a*x))-b};},
+  ()=>{const k1=ri(1,2),k2=ri(3,5),k3=ri(7,12);return{name:'倍音合成',complexity:'★★★',latexLines:[`\\sin(${k1}x)+\\tfrac{1}{${k2}}\\sin(${k2}x)+\\tfrac{1}{${k3}}\\sin(${k3}x)`],fn:x=>Math.sin(k1*x)+(1/k2)*Math.sin(k2*x)+(1/k3)*Math.sin(k3*x)};},
+  ()=>{const a=ri(2,4);return{name:'線形振動',complexity:'★☆☆',latexLines:[`x\\cdot\\sin(${a}x)`],fn:x=>x*Math.sin(a*x)};},
+];
+
+// ====== PARAMETRIC ======
+const PARAMETRIC=[
+  ()=>({name:'❤️ ハート曲線',complexity:'★★★',
+    latexLines:['x=16\\sin^3(t)','y=13\\cos t{-}5\\cos 2t{-}2\\cos 3t{-}\\cos 4t'],
+    parametric:{x:t=>16*Math.pow(Math.sin(t),3),y:t=>13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t),tMin:0,tMax:2*Math.PI,steps:600,closed:true}}),
+
+  ()=>{const n=ri(4,8);return{name:`✨ ${n}角星形`,complexity:'★★☆',
+    latexLines:[`x=\\cos^3(\\tfrac{${n}t}{2})\\cos t`,`y=\\cos^3(\\tfrac{${n}t}{2})\\sin t`],
+    parametric:{x:t=>Math.pow(Math.cos(n*t/2),3)*Math.cos(t),y:t=>Math.pow(Math.cos(n*t/2),3)*Math.sin(t),tMin:0,tMax:4*Math.PI,steps:1200,closed:true}};},
+
+  ()=>{const a=ri(2,5),b=ri(2,5),d=+f2(rnd(0,Math.PI/2));return{name:'リサージュ図形',complexity:'★★☆',
+    latexLines:[`x=\\sin(${a}t+${d})`,`y=\\sin(${b}t)`],
+    parametric:{x:t=>Math.sin(a*t+d),y:t=>Math.sin(b*t),tMin:0,tMax:2*Math.PI*Math.max(a,b),steps:1500,closed:false}};},
+
+  ()=>({name:'🦋 バタフライ曲線',complexity:'★★★',
+    latexLines:['x=\\sin t(e^{\\cos t}{-}2\\cos 4t{-}\\sin^5\\tfrac{t}{12})','y=\\cos t(e^{\\cos t}{-}2\\cos 4t{-}\\sin^5\\tfrac{t}{12})'],
+    parametric:{x:t=>Math.sin(t)*(Math.exp(Math.cos(t))-2*Math.cos(4*t)-Math.pow(Math.sin(t/12),5)),y:t=>Math.cos(t)*(Math.exp(Math.cos(t))-2*Math.cos(4*t)-Math.pow(Math.sin(t/12),5)),tMin:0,tMax:12*Math.PI,steps:2000,closed:false}}),
+
+  ()=>{const R=ri(4,7),r=ri(1,3),d=ri(2,5);return{name:'🌀 スピログラフ',complexity:'★★★',
+    latexLines:[`x=(${R}{-}${r})\\cos t+${d}\\cos\\frac{${R-r}}{${r}}t`,`y=(${R}{-}${r})\\sin t-${d}\\sin\\frac{${R-r}}{${r}}t`],
+    parametric:{x:t=>(R-r)*Math.cos(t)+d*Math.cos((R-r)/r*t),y:t=>(R-r)*Math.sin(t)-d*Math.sin((R-r)/r*t),tMin:0,tMax:2*Math.PI*r,steps:1800,closed:true}};},
+
+  ()=>{const R=ri(3,5),r=ri(1,3),d=ri(1,4);return{name:'🌸 エピトロコイド',complexity:'★★★',
+    latexLines:[`x=(${R}{+}${r})\\cos t-${d}\\cos\\frac{${R+r}}{${r}}t`,`y=(${R}{+}${r})\\sin t-${d}\\sin\\frac{${R+r}}{${r}}t`],
+    parametric:{x:t=>(R+r)*Math.cos(t)-d*Math.cos((R+r)/r*t),y:t=>(R+r)*Math.sin(t)-d*Math.sin((R+r)/r*t),tMin:0,tMax:2*Math.PI*r,steps:1800,closed:true}};},
+
+  ()=>({name:'🔱 三葉線',complexity:'★★☆',
+    latexLines:['x=\\sin t+2\\sin 2t','y=\\cos t-2\\cos 2t'],
+    parametric:{x:t=>Math.sin(t)+2*Math.sin(2*t),y:t=>Math.cos(t)-2*Math.cos(2*t),tMin:0,tMax:2*Math.PI,steps:600,closed:true}}),
+
+  ()=>({name:'🎀 クロソイド風',complexity:'★★★',
+    latexLines:['x=\\cos(t^2)','y=\\sin(t^2)'],
+    parametric:{x:t=>Math.cos(t*t),y:t=>Math.sin(t*t),tMin:-4,tMax:4,steps:1000,closed:false}}),
+
+  ()=>({name:'⬟ アステロイド',complexity:'★★☆',
+    latexLines:['x=\\cos^3(t)','y=\\sin^3(t)'],
+    parametric:{x:t=>Math.pow(Math.cos(t),3),y:t=>Math.pow(Math.sin(t),3),tMin:0,tMax:2*Math.PI,steps:600,closed:true}}),
+
+  ()=>{const n=ri(3,6);return{name:`🌀 ${n}重リサージュ`,complexity:'★★★',
+    latexLines:[`x=\\sin(${n}t)`,`y=\\sin(${n+1}t)`],
+    parametric:{x:t=>Math.sin(n*t),y:t=>Math.sin((n+1)*t),tMin:0,tMax:2*Math.PI*n,steps:1500,closed:true}};},
+
+  ()=>({name:'💠 デルトイド',complexity:'★★☆',
+    latexLines:['x=2\\cos t+\\cos 2t','y=2\\sin t-\\sin 2t'],
+    parametric:{x:t=>2*Math.cos(t)+Math.cos(2*t),y:t=>2*Math.sin(t)-Math.sin(2*t),tMin:0,tMax:2*Math.PI,steps:600,closed:true}}),
+
+  ()=>({name:'🌹 バラ形 (パラメトリック)',complexity:'★★★',
+    latexLines:['x=(1+0.5\\cos 5t)\\cos t','y=(1+0.5\\cos 5t)\\sin t'],
+    parametric:{x:t=>(1+0.5*Math.cos(5*t))*Math.cos(t),y:t=>(1+0.5*Math.cos(5*t))*Math.sin(t),tMin:0,tMax:2*Math.PI,steps:800,closed:true}}),
+];
+
+// ====== POLAR ======
+const POLAR=[
+  ()=>{const n=ri(3,8);return{name:`🌹 バラ曲線 n=${n}`,complexity:'★★☆',latexLines:[`r=\\cos(${n}\\theta)`],polar:{r:t=>Math.cos(n*t),tMin:0,tMax:2*Math.PI,steps:1000}};},
+  ()=>{const a=+f2(rnd(0.1,0.4));return{name:'🌀 アルキメデス螺旋',complexity:'★☆☆',latexLines:[`r=${a}\\theta`],polar:{r:t=>a*t,tMin:0,tMax:6*Math.PI,steps:1200}};},
+  ()=>({name:'♥ カージオイド',complexity:'★★☆',latexLines:['r=1-\\cos\\theta'],polar:{r:t=>1-Math.cos(t),tMin:0,tMax:2*Math.PI,steps:600}}),
+  ()=>({name:'∞ レムニスケート',complexity:'★★★',latexLines:['r^2=\\cos(2\\theta)'],polar:{r:t=>{const v=Math.cos(2*t);return v>=0?Math.sqrt(v):NaN;},tMin:0,tMax:2*Math.PI,steps:800}}),
+  ()=>{const a=+f1(rnd(0.5,1.5)),b=+f1(rnd(0.5,1.5));return{name:'🐌 パスカルの蝸牛形',complexity:'★★☆',latexLines:[`r=${a}+${b}\\cos\\theta`],polar:{r:t=>a+b*Math.cos(t),tMin:0,tMax:2*Math.PI,steps:600}};},
+  ()=>{const a=+f2(rnd(0.1,0.3));return{name:'🌀 対数螺旋',complexity:'★★☆',latexLines:[`r=e^{${a}\\theta}`],polar:{r:t=>Math.exp(a*t),tMin:0,tMax:4*Math.PI,steps:800}};},
+  ()=>({name:'🌸 四弁花',complexity:'★★☆',latexLines:['r=\\sin(2\\theta)'],polar:{r:t=>Math.sin(2*t),tMin:0,tMax:2*Math.PI,steps:800}}),
+  ()=>({name:'🌻 フェルマー螺旋',complexity:'★★☆',latexLines:['r=\\sqrt{\\theta}'],polar:{r:t=>t>=0?Math.sqrt(t):NaN,tMin:0,tMax:8*Math.PI,steps:1000}}),
+  ()=>({name:'⭐ 星形極曲線',complexity:'★★★',latexLines:['r=\\cos^2(2\\theta)\\cdot\\sin\\theta'],polar:{r:t=>Math.pow(Math.cos(2*t),2)*Math.sin(t),tMin:0,tMax:2*Math.PI,steps:1000}}),
+  ()=>({name:'🎠 フォリウム',complexity:'★★★',latexLines:['r=\\frac{4\\sin\\theta\\cos^2\\theta}{\\sin^3\\theta+\\cos^3\\theta}'],polar:{r:t=>{const s=Math.sin(t),c=Math.cos(t),d=s*s*s+c*c*c;return Math.abs(d)<1e-6?NaN:4*s*c*c/d;},tMin:0.01,tMax:Math.PI/2-0.01,steps:500}}),
+];
+
+function setFilter(f){
+  activeFilter=f;
+  ['all','cartesian','parametric','polar'].forEach(k=>{
+    document.getElementById('btn'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('active',k===f);
+  });
+  generateNewFunction();
+}
+
+function getAllPools(){
+  if(activeFilter==='cartesian')return CARTESIAN;
+  if(activeFilter==='parametric')return PARAMETRIC;
+  if(activeFilter==='polar')return POLAR;
+  return[...CARTESIAN,...PARAMETRIC,...POLAR];
+}
+
+let currentDef=null;
+
+function generateNewFunction(){
+  seedVal=Date.now()^(Math.random()*0xffffffff|0);
+  const pool=getAllPools();
+  currentDef=pool[ri(0,pool.length-1)]();
+
+  const kind=currentDef.parametric?'parametric':currentDef.polar?'polar':'cartesian';
+  const badge=document.getElementById('typeBadge');
+  badge.className='type-badge '+kind;
+  badge.textContent=kind==='cartesian'?'CARTESIAN':kind==='parametric'?'PARAMETRIC':'POLAR';
+
+  const formulaEl=document.getElementById('formula');
+  formulaEl.innerHTML=currentDef.latexLines.map(l=>`<div class="math-line">\\(${l}\\)</div>`).join('');
+  if(window.MathJax)MathJax.typesetPromise([formulaEl]).catch(()=>{});
+
+  document.getElementById('shapeName').textContent=currentDef.name;
+  document.getElementById('statC').textContent=kind==='cartesian'?'直交座標':kind==='parametric'?'パラメトリック':'極座標';
+  document.getElementById('statD').textContent=currentDef.complexity;
+
+  if(currentDef.parametric)renderParametric(currentDef.parametric);
+  else if(currentDef.polar)renderPolar(currentDef.polar);
+  else renderCartesian(currentDef.fn);
+}
+
+function setupCanvas(){
+  const canvas=document.getElementById('graphCanvas');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);
+  return{canvas,ctx,W:rect.width,H:rect.height};
+}
+
+function drawBg(ctx,W,H){ctx.fillStyle='rgba(6,6,16,0.98)';ctx.fillRect(0,0,W,H);}
+
+function drawCurveGrad(ctx,W,H,pts,pal){
+  if(pts.filter(Boolean).length<2)return;
+  const grad=ctx.createLinearGradient(0,0,W,H);
+  grad.addColorStop(0,pal[0]);grad.addColorStop(0.5,pal[1]);grad.addColorStop(1,pal[2]);
+  ctx.shadowColor=pal[1];ctx.shadowBlur=14;
+  ctx.strokeStyle=grad;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.beginPath();let pen=false;
+  for(const p of pts){if(!p){pen=false;continue;}if(!pen){ctx.moveTo(p.sx,p.sy);pen=true;}else ctx.lineTo(p.sx,p.sy);}
+  ctx.stroke();ctx.shadowBlur=0;
+}
+
+function h2r(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;}
+
+function renderCartesian(fn){
+  const{ctx,W,H}=setupCanvas(); drawBg(ctx,W,H);
+  const xMin=-4*Math.PI,xMax=4*Math.PI,steps=900;
+  const pts=[],ys=[];
+  for(let i=0;i<=steps;i++){
+    const x=xMin+(xMax-xMin)*i/steps,y=fn(x);
+    pts.push({x,y:isFinite(y)?y:NaN});
+    if(isFinite(y))ys.push(y);
+  }
+  const maxY=ys.length?Math.max(...ys):1,minY=ys.length?Math.min(...ys):-1;
+  const pad=(maxY-minY||1)*0.15,yDn=minY-pad,yDx=maxY+pad;
+  const toS=(x,y)=>({sx:(x-xMin)/(xMax-xMin)*W,sy:H-(y-yDn)/(yDx-yDn)*H});
+
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  for(let i=-4;i<=4;i++){const{sx}=toS(i*Math.PI,0);ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,H);ctx.stroke();}
+  for(let j=-3;j<=3;j++){const yV=yDn+(j+3)/6*(yDx-yDn);const{sy}=toS(0,yV);ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(W,sy);ctx.stroke();}
+  ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1.5;
+  const{sy:ay}=toS(0,0);if(ay>0&&ay<H){ctx.beginPath();ctx.moveTo(0,ay);ctx.lineTo(W,ay);ctx.stroke();}
+  const{sx:ax}=toS(0,0);if(ax>0&&ax<W){ctx.beginPath();ctx.moveTo(ax,0);ctx.lineTo(ax,H);ctx.stroke();}
+
+  const pal=PALETTES[ri(0,PALETTES.length-1)];
+  drawCurveGrad(ctx,W,H,pts.map(p=>isNaN(p.y)?null:toS(p.x,p.y)),pal);
+  setStats(maxY.toFixed(2),minY.toFixed(2),'最大値','最小値');
+}
+
+function renderParametric(param){
+  const{ctx,W,H}=setupCanvas(); drawBg(ctx,W,H);
+  const{x:xFn,y:yFn,tMin,tMax,steps}=param;
+  const pts=[],xs=[],ys=[];
+  for(let i=0;i<=steps;i++){
+    const t=tMin+(tMax-tMin)*i/steps,px=xFn(t),py=yFn(t);
+    pts.push(isFinite(px)&&isFinite(py)?{x:px,y:py}:null);
+    if(isFinite(px))xs.push(px); if(isFinite(py))ys.push(py);
+  }
+  if(!xs.length||!ys.length)return;
+  const xMn=Math.min(...xs),xMx=Math.max(...xs),yMn=Math.min(...ys),yMx=Math.max(...ys);
+  const xR=xMx-xMn||1,yR=yMx-yMn||1;
+  const scale=Math.min(W/xR,H/yR)*0.82;
+  const cx=W/2,cy=H/2,xCtr=(xMx+xMn)/2,yCtr=(yMx+yMn)/2;
+  const toS=(x,y)=>({sx:cx+(x-xCtr)*scale,sy:cy-(y-yCtr)*scale});
+
+  ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=1;
+  for(let i=0;i<8;i++){const sx=i*W/7;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,H);ctx.stroke();}
+  for(let j=0;j<6;j++){const sy=j*H/5;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(W,sy);ctx.stroke();}
+  ctx.strokeStyle='rgba(255,255,255,0.16)';ctx.lineWidth=1.5;
+  const{sy:ay}=toS(xCtr,0);if(ay>0&&ay<H){ctx.beginPath();ctx.moveTo(0,ay);ctx.lineTo(W,ay);ctx.stroke();}
+  const{sx:ax}=toS(0,yCtr);if(ax>0&&ax<W){ctx.beginPath();ctx.moveTo(ax,0);ctx.lineTo(ax,H);ctx.stroke();}
+
+  const pal=PALETTES[ri(0,PALETTES.length-1)];
+  const sPts=pts.map(p=>p?toS(p.x,p.y):null);
+
+  if(param.closed&&sPts.filter(Boolean).length>3){
+    ctx.beginPath();let pen=false;
+    for(const p of sPts){if(!p){pen=false;continue;}if(!pen){ctx.moveTo(p.sx,p.sy);pen=true;}else ctx.lineTo(p.sx,p.sy);}
+    ctx.closePath();
+    const fg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)/2);
+    fg.addColorStop(0,h2r(pal[1],0.15));fg.addColorStop(1,h2r(pal[0],0.03));
+    ctx.fillStyle=fg;ctx.fill();
+  }
+  drawCurveGrad(ctx,W,H,sPts,pal);
+  setStats(xR.toFixed(2),yR.toFixed(2),'幅','高さ');
+}
+
+function renderPolar(param){
+  const{ctx,W,H}=setupCanvas(); drawBg(ctx,W,H);
+  const{r:rFn,tMin,tMax,steps}=param;
+  const pts=[],rs=[];
+  for(let i=0;i<=steps;i++){
+    const θ=tMin+(tMax-tMin)*i/steps,r=rFn(θ);
+    if(!isFinite(r)||isNaN(r)){pts.push(null);continue;}
+    pts.push({x:r*Math.cos(θ),y:r*Math.sin(θ)});rs.push(Math.abs(r));
+  }
+  const maxR=rs.length?Math.max(...rs):1;
+  const scale=Math.min(W,H)/2*0.82/maxR;
+  const cx=W/2,cy=H/2;
+  const toS=(x,y)=>({sx:cx+x*scale,sy:cy-y*scale});
+
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  for(let ri2=1;ri2<=4;ri2++){ctx.beginPath();ctx.arc(cx,cy,ri2*scale*maxR/4,0,2*Math.PI);ctx.stroke();}
+  for(let ai=0;ai<8;ai++){const a=ai*Math.PI/4;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*W,cy-Math.sin(a)*H);ctx.stroke();}
+  ctx.strokeStyle='rgba(255,255,255,0.16)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+
+  const pal=PALETTES[ri(0,PALETTES.length-1)];
+  const sPts=pts.map(p=>p?toS(p.x,p.y):null);
+
+  ctx.beginPath();let pen=false;
+  for(const p of sPts){if(!p){pen=false;continue;}if(!pen){ctx.moveTo(p.sx,p.sy);pen=true;}else ctx.lineTo(p.sx,p.sy);}
+  ctx.closePath();
+  const fg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.min(W,H)/2);
+  fg.addColorStop(0,h2r(pal[1],0.18));fg.addColorStop(1,h2r(pal[0],0.03));
+  ctx.fillStyle=fg;ctx.fill();
+
+  drawCurveGrad(ctx,W,H,sPts,pal);
+  setStats(maxR.toFixed(2),(maxR*2).toFixed(2),'最大半径','直径');
+}
+
+function setStats(a,b,la,lb){
+  document.getElementById('statA').textContent=a; document.getElementById('labelA').textContent=la;
+  document.getElementById('statB').textContent=b; document.getElementById('labelB').textContent=lb;
+}
+
+let generateCount = 0;
+window.addEventListener('load',()=>setTimeout(generateNewFunction,300));
+window.addEventListener('resize',()=>{if(currentDef)generateNewFunction();});
+
+const _origGenerate = generateNewFunction;
+generateNewFunction = function(){
+  _origGenerate();
+  generateCount++;
+  syncBar();
+};
+
+function syncBar(){
+  if(!currentDef) return;
+  const kind = currentDef.parametric?'parametric':currentDef.polar?'polar':'cartesian';
+  const emojiMatch = currentDef.name.match(/[\u{1F300}-\u{1FFFF}]|[\u2600-\u27BF]/u);
+  document.getElementById('barIcon').textContent = emojiMatch ? emojiMatch[0] : '📐';
+  document.getElementById('barName').textContent = currentDef.name.replace(/^[\u{1F300}-\u{1FFFF}\u2600-\u27BF\s]+/u,'').trim() || currentDef.name;
+  const barType = document.getElementById('barType');
+  barType.textContent = kind==='cartesian'?'CARTESIAN':kind==='parametric'?'PARAMETRIC':'POLAR';
+  barType.className = 'bar-type '+kind;
+  document.getElementById('barCount').textContent = generateCount;
+  ['all','cartesian','parametric','polar'].forEach(f=>{
+    document.getElementById('barf-'+f).classList.toggle('active', f===activeFilter);
+  });
+}
+function barSetFilter(f){ setFilter(f); syncBar(); }
+</script>
+
+<div class="sticky-bar">
+  <div class="bar-progress"></div>
+  <div class="bar-info">
+    <div class="bar-icon" id="barIcon">📐</div>
+    <div class="bar-text">
+      <span class="bar-name" id="barName">生成中…</span>
+      <span class="bar-type cartesian" id="barType">CARTESIAN</span>
+    </div>
+  </div>
+  <div class="bar-divider"></div>
+  <div class="bar-counter">
+    <span class="bar-count-num" id="barCount">0</span>
+    <span class="bar-count-label">生成数</span>
+  </div>
+  <div class="bar-divider"></div>
+  <div class="bar-filters">
+    <button class="bar-filter active" id="barf-all"        onclick="barSetFilter('all')">ALL</button>
+    <button class="bar-filter"        id="barf-cartesian"  onclick="barSetFilter('cartesian')">XY</button>
+    <button class="bar-filter"        id="barf-parametric" onclick="barSetFilter('parametric')">t</button>
+    <button class="bar-filter"        id="barf-polar"      onclick="barSetFilter('polar')">θ</button>
+  </div>
+  <div class="bar-divider"></div>
+  <button class="bar-gen-btn" onclick="generateNewFunction()">🎲 次へ</button>
+</div>
+
+<!-- ===== STICKY AD BAR ===== -->
+<div class="ad-bar" id="adBar">
+  <div class="ad-bar-inner">
+    <span class="ad-label">広告</span>
+    <div class="ad-logo">🔮</div>
+    <div class="ad-copy">
+      <div class="ad-headline" id="adHeadline">MathViz Pro — 数学可視化ツールの決定版</div>
+      <div class="ad-sub" id="adSub">無限の関数をインタラクティブに探求。今なら14日間無料トライアル。</div>
+    </div>
+    <button class="ad-cta" id="adCta">無料で試す →</button>
+    <button class="ad-close" onclick="closeAd()" title="閉じる">✕</button>
+  </div>
+</div>
+<button class="ad-reopen" id="adReopen" onclick="reopenAd()">📢 広告を表示</button>
+
+<script>
+/* 追尾型広告バー (320x50) */
+.ad-bar {
+  position: sticky;
+  top: 20px;
+  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+  border-radius: 12px;
+  padding: 8px 16px;
+  box-shadow: 0 8px 32px rgba(255,107,107,0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  margin: 2rem 0;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+  animation: adPulse 2s ease-in-out infinite;
+  z-index: 100;
+  width: 320px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ad-bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(255,107,107,0.6);
+}
+
+.ad-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+}
+
+.ad-text {
+  flex: 1;
+  padding-right: 12px;
+}
+
+#adHeadline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  color: white;
+}
+
+#adSub {
+  font-size: 11px;
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.1;
+}
+
+.ad-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cta-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.cta-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.05);
+}
+
+.close-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: rgba(255,255,255,0.4);
+  transform: scale(1.1);
+}
+
+.ad-reopen {
+  position: sticky;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(45deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(255,107,107,0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  z-index: 1000;
+}
+
+.ad-reopen.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ad-bar.hidden {
+  animation-play-state: paused;
+  transform: translateY(-100px);
+  opacity: 0;
+}
+
+@keyframes adPulse {
+  0%, 100% { box-shadow: 0 8px 32px rgba(255,107,107,0.4); }
+  50% { box-shadow: 0 8px 32px rgba(255,107,107,0.6); }
+}
+
+body.ad-open .ad-bar {
+  animation: adSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes adSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+</script>
+
+</body>
+</html>
