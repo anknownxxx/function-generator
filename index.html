@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔮 ランダム数学関数ジェネレーター</title>
+  <title>🔮 function generator</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js" async></script>
   <style>
@@ -120,323 +120,111 @@
     @keyframes fadeInUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
     @media(max-width:720px){ .function-display{grid-template-columns:1fr;gap:1.5rem;} .main-card{padding:1.5rem;} }
 
-    /* ===== STICKY FOOTER BAR ===== */
-    body { padding-bottom: 82px; }
+    /* ===== NINJA ADMAX 320×50 STICKY AD ===== */
 
-    .sticky-bar {
+    /*
+      Layout stack from bottom of viewport (lowest z first):
+        [ninja-ad-wrap]   z-index:300  height: 50px  (the actual ad slot)
+
+      body padding-bottom = 58px (50px ad + 8px gap)
+      On mobile ≤480px: bar collapses to 56px → padding = 50+56+8 = 114px
+    */
+
+    body { padding-bottom: 58px; }
+
+    /* ── Ad wrapper ── */
+    .ninja-ad-wrap {
       position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 100;
-      background: rgba(10,10,22,0.82);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border-top: 1px solid rgba(255,255,255,0.09);
-      box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
-      padding: 0 1.5rem;
-      height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
+      bottom: 0;             /* sits at bottom of viewport */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      width: 320px;
+      height: 50px;
+      background: transparent;
+      /* subtle separator so the two bars feel distinct */
+      filter: drop-shadow(0 -2px 8px rgba(0,0,0,0.5));
     }
 
-    /* current shape pill */
-    .bar-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      min-width: 0;
-      flex: 1;
+    /* The slot itself: plain white background so ad creative shows correctly */
+    .ninja-ad-slot {
+      width: 320px;
+      height: 50px;
+      background: #fff;           /* required by most ad networks */
+      border-radius: 4px;
       overflow: hidden;
-    }
-    .bar-icon {
-      font-size: 1.5rem;
-      flex-shrink: 0;
-      filter: drop-shadow(0 0 6px rgba(78,205,196,0.6));
-    }
-    .bar-text {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .bar-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #fff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .bar-type {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-top: 0.05rem;
-    }
-    .bar-type.cartesian  { color: #ff9999; }
-    .bar-type.parametric { color: #7efff7; }
-    .bar-type.polar      { color: #d9b3ff; }
-
-    /* divider */
-    .bar-divider {
-      width: 1px;
-      height: 36px;
-      background: rgba(255,255,255,0.1);
-      flex-shrink: 0;
-    }
-
-    /* counter */
-    .bar-counter {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    .bar-count-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--accent2);
-      line-height: 1;
-    }
-    .bar-count-label {
-      font-size: 0.6rem;
-      color: var(--text-muted);
-      margin-top: 0.1rem;
-      letter-spacing: 0.05em;
-    }
-
-    /* filter mini pills */
-    .bar-filters {
-      display: flex;
-      gap: 0.4rem;
-      flex-shrink: 0;
-    }
-    .bar-filter {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 0.3rem 0.65rem;
-      border-radius: 50px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .bar-filter:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .bar-filter.active { background: rgba(78,205,196,0.18); border-color: rgba(78,205,196,0.45); color: #7efff7; }
-
-    /* big generate button in bar */
-    .bar-gen-btn {
-      background: linear-gradient(45deg, var(--accent), var(--accent2));
-      border: none;
-      color: #fff;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 0.6rem 1.4rem;
-      border-radius: 50px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.25s;
-      box-shadow: 0 4px 18px rgba(255,107,107,0.35);
-      white-space: nowrap;
-    }
-    .bar-gen-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,107,0.55); }
-    .bar-gen-btn:active { transform: translateY(0); }
-
-    /* progress glow line at top of bar */
-    .bar-progress {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
-      background-size: 200% 100%;
-      animation: progressFlow 3s linear infinite;
-    }
-    @keyframes progressFlow {
-      0%   { background-position: 0% 0%; }
-      100% { background-position: 200% 0%; }
-    }
-
-    @media(max-width:600px) {
-      .bar-filters { display: none; }
-      .bar-divider { display: none; }
-      .bar-counter { display: none; }
-      .sticky-bar { padding: 0 1rem; }
-    }
-
-    /* ===== STICKY AD BAR ===== */
-    .ad-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 200;
-      background: rgba(12,12,24,0.97);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 -4px 30px rgba(0,0,0,0.6);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 1rem;
-      height: 80px;
-      animation: adSlideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
-      transform-origin: bottom;
-    }
-    .ad-bar.hidden {
-      animation: adSlideDown 0.35s cubic-bezier(0.4,0,1,1) forwards;
-      pointer-events: none;
-    }
-    @keyframes adSlideUp   { from{transform:translateY(100%);opacity:0;} to{transform:translateY(0);opacity:1;} }
-    @keyframes adSlideDown { from{transform:translateY(0);opacity:1;} to{transform:translateY(100%);opacity:0;} }
-
-    .ad-bar-inner {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
       position: relative;
     }
 
-    /* AD label */
-    .ad-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.6rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      color: #888;
-      border: 1px solid #444;
-      border-radius: 3px;
-      padding: 0.1rem 0.35rem;
-      flex-shrink: 0;
-    }
-
-    /* fake logo box */
-    .ad-logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3rem;
-      flex-shrink: 0;
-      box-shadow: 0 0 12px rgba(78,205,196,0.35);
-    }
-
-    .ad-copy {
-      flex: 1;
-      min-width: 0;
-    }
-    .ad-headline {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #f0f0f0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .ad-sub {
-      font-size: 0.7rem;
-      color: #888;
-      margin-top: 0.15rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .ad-cta {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      border: none;
-      color: #fff;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.5rem 1.1rem;
-      border-radius: 50px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.2s;
-      box-shadow: 0 3px 14px rgba(255,107,107,0.35);
-      white-space: nowrap;
-    }
-    .ad-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(78,205,196,0.45); }
-
-    .ad-close {
+    /* "広告" label – tiny, stays above ad creative */
+    .ninja-ad-label {
       position: absolute;
-      top: 50%;
-      right: 0;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #888;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      line-height: 1;
-    }
-    .ad-close:hover { background: rgba(255,107,107,0.2); border-color: rgba(255,107,107,0.4); color: #fff; }
-
-    /* shimmer animation on ad bg */
-    .ad-bar::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -60%;
-      width: 40%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-      animation: adShimmer 4s ease-in-out infinite;
+      top: 2px;
+      right: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #aaa;
+      background: rgba(255,255,255,0.85);
+      padding: 1px 4px;
+      border-radius: 2px;
       pointer-events: none;
+      z-index: 1;
     }
-    @keyframes adShimmer { 0%{left:-60%;} 100%{left:120%;} }
 
-    /* re-show button after close */
-    .ad-reopen {
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      z-index: 200;
-      background: rgba(12,12,24,0.92);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: #888;
+    /* Placeholder shown ONLY when no real ad is loaded (dev / preview) */
+    .ninja-ad-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.65rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: none;
-      backdrop-filter: blur(12px);
+      color: #999;
+      background: repeating-linear-gradient(
+        -45deg,
+        #f4f4f4,
+        #f4f4f4 4px,
+        #ececec 4px,
+        #ececec 8px
+      );
+      pointer-events: none;
+      user-select: none;
     }
-    .ad-reopen.visible { display: block; animation: fadeInUp 0.3s ease; }
-    .ad-reopen:hover { background: rgba(255,107,107,0.15); color: #fff; }
+    .ninja-ad-placeholder span { color: #bbb; }
 
-    /* offset main content when ad visible */
-    body.ad-open { padding-bottom: 96px; }
+    /* ── Responsive ── */
 
-    @media(max-width:520px) {
-      .ad-sub { display: none; }
-      .ad-bar { height: 68px; }
+    /* ≥ 728px: upgrade slot width to leaderboard-ish within wrapper */
+    @media (min-width: 728px) {
+      .ninja-ad-wrap  { width: 320px; }   /* keep 320 – AdMax mobile banner */
     }
+
+    /* ≤ 480px */
+    @media (max-width: 480px) {
+      .ninja-ad-wrap { bottom: 0; }
+      body           { padding-bottom: 58px; }
+    }
+
+    /* ≤ 360px: slot may clip – center & scale down slightly */
+    @media (max-width: 360px) {
+      .ninja-ad-wrap {
+        width: 300px;
+      }
+      .ninja-ad-slot {
+        width: 300px;
+      }
+      .ninja-ad-placeholder {
+        font-size: 0.58rem;
+      }
+    }
+
 
   </style>
 </head>
@@ -737,226 +525,22 @@ function setStats(a,b,la,lb){
   document.getElementById('statA').textContent=a; document.getElementById('labelA').textContent=la;
   document.getElementById('statB').textContent=b; document.getElementById('labelB').textContent=lb;
 }
+</script><!-- ===== 320×50 追尾型広告スペース ===== -->
+<!--
 
-let generateCount = 0;
-window.addEventListener('load',()=>setTimeout(generateNewFunction,300));
-window.addEventListener('resize',()=>{if(currentDef)generateNewFunction();});
+<div class="ninja-ad-wrap" id="ninjaAdWrap">
+  <div class="ninja-ad-slot">
+    <span class="ninja-ad-label">広告</span>
 
-const _origGenerate = generateNewFunction;
-generateNewFunction = function(){
-  _origGenerate();
-  generateCount++;
-  syncBar();
-};
+    <!-- ↓ 忍者AdMaxのタグをここに貼り付けてください ↓ -->
+    <!-- ここに忍者AdMaxのタグを貼る -->
 
-function syncBar(){
-  if(!currentDef) return;
-  const kind = currentDef.parametric?'parametric':currentDef.polar?'polar':'cartesian';
-  const emojiMatch = currentDef.name.match(/[\u{1F300}-\u{1FFFF}]|[\u2600-\u27BF]/u);
-  document.getElementById('barIcon').textContent = emojiMatch ? emojiMatch[0] : '📐';
-  document.getElementById('barName').textContent = currentDef.name.replace(/^[\u{1F300}-\u{1FFFF}\u2600-\u27BF\s]+/u,'').trim() || currentDef.name;
-  const barType = document.getElementById('barType');
-  barType.textContent = kind==='cartesian'?'CARTESIAN':kind==='parametric'?'PARAMETRIC':'POLAR';
-  barType.className = 'bar-type '+kind;
-  document.getElementById('barCount').textContent = generateCount;
-  ['all','cartesian','parametric','polar'].forEach(f=>{
-    document.getElementById('barf-'+f).classList.toggle('active', f===activeFilter);
-  });
-}
-function barSetFilter(f){ setFilter(f); syncBar(); }
-</script>
-
-<div class="sticky-bar">
-  <div class="bar-progress"></div>
-  <div class="bar-info">
-    <div class="bar-icon" id="barIcon">📐</div>
-    <div class="bar-text">
-      <span class="bar-name" id="barName">生成中…</span>
-      <span class="bar-type cartesian" id="barType">CARTESIAN</span>
+    <!-- ↑ 本番では以下の placeholder を削除してください ↑ -->
+    <div class="ninja-ad-placeholder">
+      <span>320 × 50</span> 広告スペース
     </div>
   </div>
-  <div class="bar-divider"></div>
-  <div class="bar-counter">
-    <span class="bar-count-num" id="barCount">0</span>
-    <span class="bar-count-label">生成数</span>
-  </div>
-  <div class="bar-divider"></div>
-  <div class="bar-filters">
-    <button class="bar-filter active" id="barf-all"        onclick="barSetFilter('all')">ALL</button>
-    <button class="bar-filter"        id="barf-cartesian"  onclick="barSetFilter('cartesian')">XY</button>
-    <button class="bar-filter"        id="barf-parametric" onclick="barSetFilter('parametric')">t</button>
-    <button class="bar-filter"        id="barf-polar"      onclick="barSetFilter('polar')">θ</button>
-  </div>
-  <div class="bar-divider"></div>
-  <button class="bar-gen-btn" onclick="generateNewFunction()">🎲 次へ</button>
 </div>
-
-<!-- ===== STICKY AD BAR ===== -->
-<div class="ad-bar" id="adBar">
-  <div class="ad-bar-inner">
-    <span class="ad-label">広告</span>
-    <div class="ad-logo">🔮</div>
-    <div class="ad-copy">
-      <div class="ad-headline" id="adHeadline">MathViz Pro — 数学可視化ツールの決定版</div>
-      <div class="ad-sub" id="adSub">無限の関数をインタラクティブに探求。今なら14日間無料トライアル。</div>
-    </div>
-    <button class="ad-cta" id="adCta">無料で試す →</button>
-    <button class="ad-close" onclick="closeAd()" title="閉じる">✕</button>
-  </div>
-</div>
-<button class="ad-reopen" id="adReopen" onclick="reopenAd()">📢 広告を表示</button>
-
-<script>
-/* 追尾型広告バー (320x50) */
-.ad-bar {
-  position: sticky;
-  top: 20px;
-  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
-  border-radius: 12px;
-  padding: 8px 16px;
-  box-shadow: 0 8px 32px rgba(255,107,107,0.4);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
-  margin: 2rem 0;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
-  animation: adPulse 2s ease-in-out infinite;
-  z-index: 100;
-  width: 320px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.ad-bar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(255,107,107,0.6);
-}
-
-.ad-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 100%;
-}
-
-.ad-text {
-  flex: 1;
-  padding-right: 12px;
-}
-
-#adHeadline {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
-  color: white;
-}
-
-#adSub {
-  font-size: 11px;
-  margin: 0;
-  opacity: 0.9;
-  line-height: 1.1;
-}
-
-.ad-cta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cta-btn {
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: white;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.cta-btn:hover {
-  background: rgba(255,255,255,0.3);
-  transform: scale(1.05);
-}
-
-.close-btn {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: white;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.close-btn:hover {
-  background: rgba(255,255,255,0.4);
-  transform: scale(1.1);
-}
-
-.ad-reopen {
-  position: sticky;
-  bottom: 20px;
-  right: 20px;
-  background: linear-gradient(45deg, var(--accent), var(--accent2));
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  box-shadow: 0 8px 25px rgba(255,107,107,0.4);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s;
-  z-index: 1000;
-}
-
-.ad-reopen.visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-.ad-bar.hidden {
-  animation-play-state: paused;
-  transform: translateY(-100px);
-  opacity: 0;
-}
-
-@keyframes adPulse {
-  0%, 100% { box-shadow: 0 8px 32px rgba(255,107,107,0.4); }
-  50% { box-shadow: 0 8px 32px rgba(255,107,107,0.6); }
-}
-
-body.ad-open .ad-bar {
-  animation: adSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
-}
-
-@keyframes adSlideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-</script>
 
 </body>
 </html>
